@@ -62,21 +62,17 @@ public class RepositorySearchController {
     }
 
     private boolean isSearchRequestValid(String language, Integer minStars, String sort) {
-        // Check language if provided
         if (language != null && language.isEmpty()) {
             return false;
         }
 
-        // Check minStars if provided
         if (minStars != null && minStars < 0) {
             return false;
         }
 
-        // Check sort if provided
         if (sort != null && sort.isEmpty()) {
             return false;
         }
-
         return true;
     }
 }

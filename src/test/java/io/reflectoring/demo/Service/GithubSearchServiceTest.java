@@ -34,7 +34,6 @@ public class GithubSearchServiceTest {
 
     @Test
     public void testSearchRepositories_HappyPath() {
-        // Arrange
         RepositoryRecord repositoryRecord = new RepositoryRecord("query", "language", "sortBy");
         GitHubRepositorySearchResponse response = new GitHubRepositorySearchResponse(1, false, new ArrayList<GitHubRepository>());
 
@@ -42,10 +41,8 @@ public class GithubSearchServiceTest {
 
         when(restTemplate.getForEntity(any(), any())).thenReturn(responseEntity);
 
-        // Act
         RepositoryRecordResponse result = githubSearchService.searchRepositories(repositoryRecord);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Repositories saved successfully.", result.message());
         assertEquals(1, result.repositories().size());
@@ -53,7 +50,6 @@ public class GithubSearchServiceTest {
 
     @Test
     public void testSearchRepositories_NoResults() {
-        // Arrange
         RepositoryRecord repositoryRecord = new RepositoryRecord("query", "language", "sortBy");
         GitHubRepositorySearchResponse response = new GitHubRepositorySearchResponse(0, false, new ArrayList<GitHubRepository>());
 
@@ -61,10 +57,8 @@ public class GithubSearchServiceTest {
 
         when(restTemplate.getForEntity(any(), any())).thenReturn(responseEntity);
 
-        // Act
         RepositoryRecordResponse result = githubSearchService.searchRepositories(repositoryRecord);
 
-        // Assert
         assertNotNull(result);
         assertEquals("No repositories found.", result.message());
         assertEquals(0, result.repositories().size());
@@ -72,17 +66,14 @@ public class GithubSearchServiceTest {
 
     @Test
     public void testSearchRepositories_RequestLimitExceeded() {
-        // Arrange
         RepositoryRecord repositoryRecord = new RepositoryRecord("query", "language", "sortBy");
         AppCache cache = new AppCache();
-        cache.cacheSize = 0; // assuming setCacheSize is a method in AppCache
+        cache.cacheSize = 0;
 
         GithubSearchService githubSearchService = new GithubSearchService(restTemplate, repoSearchService, cache);
 
-        // Act
         RepositoryRecordResponse result = githubSearchService.searchRepositories(repositoryRecord);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Request Limit Exceeded.", result.message());
         assertEquals(0, result.repositories().size());

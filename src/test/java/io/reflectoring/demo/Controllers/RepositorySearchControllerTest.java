@@ -50,7 +50,7 @@ public class RepositorySearchControllerTest {
 
     @Test
     public void testSearchRepositories_HappyPath() {
-        // Arrange
+        
         RepositoryRecord repositoryRecord = new RepositoryRecord("query", "language", "sortBy");
         RepositoryRecordResponse response = RepositoryRecordResponse.builder()
                 .setMessage("Repositories saved successfully.")
@@ -58,45 +58,30 @@ public class RepositorySearchControllerTest {
                 .build();
 
         when(githubSearchService.searchRepositories(repositoryRecord)).thenReturn(response);
-
-        // Act
         ResponseEntity<RepositoryRecordResponse> result = repositorySearchController.searchRepositories(repositoryRecord);
 
-        // Debug
-        System.out.println("Result status: " + result.getStatusCode());
-        System.out.println("Result body: " + result.getBody());
-
-        // Assert
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(response, result.getBody());
     }
-
-
-
+    
     @Test
     public void testSearchRepositories_InvalidRequest() {
-        // Arrange
         RepositoryRecord repositoryRecord = new RepositoryRecord(null, null, null);
-
-        // Act
         ResponseEntity<RepositoryRecordResponse> result = repositorySearchController.searchRepositories(repositoryRecord);
 
-        // Assert
         assertNotNull(result);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }
 
     @Test
     public void testGetRepositories_HappyPath() {
-        // Arrange
         List<GithubRepo> repositories = new ArrayList<>();
         when(repoSearchService.getRepositoriesByCriteria(any(), any(), any())).thenReturn(repositories);
 
-        // Act
-        ResponseEntity<List<GithubRepo>> result = repositorySearchController.getRepositories("language", 10, "sort");
+        ResponseEntity<List<GithubRepo>> result = repositorySearchController.getRepositories("language",
+                10, "sort");
 
-        // Assert
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(repositories, result.getBody());
@@ -104,12 +89,8 @@ public class RepositorySearchControllerTest {
 
     @Test
     public void testGetRepositories_InvalidRequest() {
-        // Arrange
-
-        // Act
         ResponseEntity<List<GithubRepo>> result = repositorySearchController.getRepositories("", -1, "");
 
-        // Assert
         assertNotNull(result);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }

@@ -22,7 +22,6 @@ public class RestTemplateConfig {
 
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
         interceptors.add((request, body, execution) -> {
-            // Set headers globally
             request.getHeaders().add("Accept", "application/vnd.github+json");
             request.getHeaders().add("Authorization", "Bearer " + token);
             request.getHeaders().add("X-GitHub-Api-Version", "2022-11-28");
