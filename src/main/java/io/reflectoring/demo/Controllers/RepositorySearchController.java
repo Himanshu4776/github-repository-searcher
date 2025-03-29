@@ -29,7 +29,7 @@ public class RepositorySearchController {
         }
 
         RepositoryRecordResponse repositoryRecordResponse = githubSearchService.searchRepositories(repositoryRecord);
-        if (repositoryRecordResponse == null || repositoryRecordResponse.repositories().isEmpty()) {
+        if (repositoryRecordResponse == null || repositoryRecordResponse.repositories() == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(repositoryRecordResponse, HttpStatus.OK);

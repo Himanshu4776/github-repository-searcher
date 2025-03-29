@@ -37,18 +37,15 @@ public class GithubSearchService {
 
         if (cache.cacheSize == 0) {
             RepositoryRecordResponse response = RepositoryRecordResponse.builder()
-                    .setMessage("Repositories saved successfully.")
+                    .setMessage("Request Limit Exceeded.")
                     .setRepositories(List.of())
                     .build();
             return response;
         }
 
-//        return null;
-
         ResponseEntity<GitHubRepositorySearchResponse> response = restTemplate.getForEntity(url, GitHubRepositorySearchResponse.class);
 
         // check if the response is successful (HTTP status code 200) if not return response with error message.
-
         if (response.getStatusCode().is2xxSuccessful()) {
             List<GitHubRepository> repositories = response.getBody().items();
             if (repositories != null) {

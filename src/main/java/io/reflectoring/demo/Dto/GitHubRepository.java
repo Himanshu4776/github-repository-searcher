@@ -4,7 +4,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 
+@Builder
 public record GitHubRepository(
         long id,
         @JsonProperty("node_id") String nodeId,

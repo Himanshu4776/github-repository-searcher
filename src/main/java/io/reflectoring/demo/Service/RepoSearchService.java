@@ -77,7 +77,7 @@ public class RepoSearchService {
         if(sort == null) {
             sort = "starsCount";
         }
-        switch(RepositorySortingModel.valueOf(sort)) {
+        switch(RepositorySortingModel.valueOf(sort.toUpperCase())) {
             case UPDATED -> {
                 return repoSearchRepository.findByStarsCountGreaterThan(minStars,
                         Sort.by(Sort.Direction.ASC, "updatedAt"));
@@ -117,7 +117,7 @@ public class RepoSearchService {
         if(sort == null) {
             sort = "starsCount";
         }
-        switch(RepositorySortingModel.valueOf(sort)) {
+        switch(RepositorySortingModel.valueOf(sort.toUpperCase())) {
             case UPDATED:
                 return repoSearchRepository.findByProgrammingLanguage(language,
                         Sort.by(Sort.Direction.ASC, "updatedAt"));
