@@ -11,4 +11,5 @@ public interface RepoSearchRepository extends JpaRepository<GithubRepo, Long> {
     public List<GithubRepo> findByProgrammingLanguage(String programmingLanguage, Sort sort);
     public List<GithubRepo> findByStarsCountGreaterThan(Integer starsCount, Sort sort);
     public List<GithubRepo> findByProgrammingLanguageAndStarsCountGreaterThan(String programmingLanguage, Integer starsCount, Sort sort);
+    public List<GithubRepo> findByRepositoryIdIn(List<Long> repositoryIds);
 }

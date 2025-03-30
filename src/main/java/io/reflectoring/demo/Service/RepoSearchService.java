@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,25 +29,41 @@ public class RepoSearchService {
     // Perform batch save repositories in the database
     @Transactional
     public List<GithubRepo> saveRepositories(List<GithubRepo> repositories) {
-        try {
-            List<GithubRepo> githubRepos = repoSearchRepository.saveAll(repositories);
-            return githubRepos;
-        } catch (DataIntegrityViolationException e) {
-            // Log the error
-            logger.error("Unique constraint violation during batch save", e);
-            List<GithubRepo> uniqueRepositories = new ArrayList<>();
+        List<Long> repositoryIds = repositories.stream()
+                .map(GithubRepo::getRepositoryId)
+                .collect(Collectors.toList());
 
-            // Fall back to individual saves with try-catch for each
-            for (GithubRepo entity : repositories) {
-                try {
-                    GithubRepo saved = repoSearchRepository.save(entity);
-                    uniqueRepositories.add(saved);
-                } catch (DataIntegrityViolationException ex) {
-                    logger.warn("Skipping duplicate entity: " + entity);
-                }
+        // Fetch existing repositories to avoid duplicates
+        List<GithubRepo> existingRepositories = repoSearchRepository.findByRepositoryIdIn(repositoryIds);
+
+        // Create a map for quick lookup
+        Map<Long, GithubRepo> existingRepoMap = existingRepositories.stream()
+                .collect(Collectors.toMap(GithubRepo::getRepositoryId, repo -> repo));
+
+        List<GithubRepo> uniqueRepositories = new ArrayList<>();
+
+        for (GithubRepo entity : repositories) {
+            if (existingRepoMap.containsKey(entity.getRepositoryId())) {
+                GithubRepo existingRepo = existingRepoMap.get(entity.getRepositoryId());
+                updateRepositoryData(existingRepo, entity); // Update method to copy new data
+                uniqueRepositories.add(existingRepo);
+            } else {
+                uniqueRepositories.add(entity);
             }
-            return uniqueRepositories;
         }
+
+        // Save all new and updated repositories
+        return repoSearchRepository.saveAll(uniqueRepositories);
+    }
+
+    private void updateRepositoryData(GithubRepo existingRepo, GithubRepo newRepo) {
+        existingRepo.setName(newRepo.getName());
+        existingRepo.setDescription(newRepo.getDescription());
+        existingRepo.setOwnerName(newRepo.getOwnerName());
+        existingRepo.setProgrammingLanguage(newRepo.getProgrammingLanguage());
+        existingRepo.setStarsCount(newRepo.getStarsCount());
+        existingRepo.setForksCount(newRepo.getForksCount());
+        existingRepo.setUpdatedAt(newRepo.getUpdatedAt());
     }
 
     public GithubRepo getRepositoryById(Long id) {
@@ -58,6 +76,10 @@ public class RepoSearchService {
 
     public List<GithubRepo> getAllRepositories() {
         return repoSearchRepository.findAll();
+    }
+
+    public List<GithubRepo> getRepositoriesByRepositoryIds(List<Long> repositoryIds) {
+        return repoSearchRepository.findByRepositoryIdIn(repositoryIds);
     }
 
     public List<GithubRepo> getRepositoriesByCriteria(String language, Integer minStars, String sort) {
