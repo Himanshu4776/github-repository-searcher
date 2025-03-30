@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,7 +49,7 @@ public class GithubSearchService {
         // check if the response is successful (HTTP status code 200) if not return response with error message.
         if (response.getStatusCode().is2xxSuccessful()) {
             List<GitHubRepository> repositories = response.getBody().items();
-            if (repositories != null) {
+            if (repositories != null && !repositories.isEmpty()) {
                 List<GithubRepo> githubRepos = repositories.stream()
                         .map(this::convertToGithubRepo)
                         .toList();
@@ -61,6 +62,11 @@ public class GithubSearchService {
                 }
             } else {
                 System.out.println("No repositories found.");
+                RepositoryRecordResponse emptyRecordResponse = RepositoryRecordResponse.builder()
+                        .setRepositories(new ArrayList<>())
+                        .setMessage("No repositories found.")
+                        .build();
+                return emptyRecordResponse;
             }
         } else {
             throw new RuntimeException("Failed to fetch GitHub issues: " + response.getStatusCode());
@@ -92,6 +98,7 @@ public class GithubSearchService {
     private String buildQuery(RepositoryRecord record) {
         String query = record.query();
         int conditionAdded = 0;
+        boolean nonMatchingCondition = false;
         if (record.language() != null && !record.language().isEmpty()) {
             if (conditionAdded == 0) {
                 query += "+";
@@ -102,21 +109,34 @@ public class GithubSearchService {
             query += "language:" + record.language();
         }
         if (record.sortBy() != null && !record.sortBy().isEmpty()) {
-            if (conditionAdded == 0) {
-                query += "+";
-            } else {
-                query += "&";
-            }
-
             if (record.sortBy().equals(RepositorySortingModel.STARS.getValue())) {
-                query += "sort:stars";
+                if (conditionAdded == 0) {
+                    query += "+";
+                } else {
+                    query += "&";
+                }
+                query += "sort=stars";
             } else if (record.sortBy().equals(RepositorySortingModel.FORKS.getValue())) {
-                query += "sort:forks";
+                if (conditionAdded == 0) {
+                    query += "+";
+                } else {
+                    query += "&";
+                }
+                query += "sort=forks";
             } else if (record.sortBy().equals(RepositorySortingModel.UPDATED.getValue())) {
-                query += "sort:updated";
+                if (conditionAdded == 0) {
+                    query += "+";
+                } else {
+                    query += "&";
+                }
+                query += "sort=updated";
+            } else {
+                nonMatchingCondition = true;
             }
-            conditionAdded++;
-            query += "&order=desc";
+            if (!nonMatchingCondition) {
+                conditionAdded++;
+                query += "&order=desc";
+            }
         }
         return query;
     }

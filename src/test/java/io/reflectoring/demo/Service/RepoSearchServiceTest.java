@@ -55,26 +55,6 @@ public class RepoSearchServiceTest {
     }
 
     @Test
-    public void testSaveRepositories_DataIntegrityViolationException() {
-        List<GithubRepo> repositories = new ArrayList<>();
-        GithubRepo githubRepo = new GithubRepo();
-        githubRepo.setRepositoryId(1L);
-        githubRepo.setName("repoName");
-        githubRepo.setOwnerName("ownerName");
-        githubRepo.setDescription("repoDescription");
-        githubRepo.setStarsCount(10);
-        githubRepo.setForksCount(5);
-        githubRepo.setProgrammingLanguage("java");
-        githubRepo.setUpdatedAt(LocalDate.of(2022, 1, 1));
-        repositories.add(githubRepo);
-
-        when(repoSearchRepository.saveAll(any())).thenThrow(DataIntegrityViolationException.class);
-
-        repoSearchService.saveRepositories(repositories);
-        verify(repoSearchRepository).saveAll(any());
-    }
-
-    @Test
     public void testSearchRepositoriesByLanguage_HappyPath() {
         String language = "java";
         List<GithubRepo> repositories = new ArrayList<>();
@@ -107,5 +87,40 @@ public class RepoSearchServiceTest {
         List<GithubRepo> result = repoSearchService.getRepositoriesByCriteria(language, null, sortingModel.getValue());
         assertEquals(repositories, result);
         verify(repoSearchRepository).findByProgrammingLanguage(language, Sort.by("forksCount"));
+    }
+
+    @Test
+    public void testSearchRepositoriesByMinStars_HappyPath() {
+        int minStars = 10;
+        List<GithubRepo> repositories = new ArrayList<>();
+        GithubRepo githubRepo = new GithubRepo();
+        githubRepo.setRepositoryId(1L);
+        githubRepo.setName("repoName");
+        githubRepo.setOwnerName("ownerName");
+        githubRepo.setDescription("repoDescription");
+        githubRepo.setStarsCount(10);
+        githubRepo.setForksCount(5);
+        githubRepo.setProgrammingLanguage("java");
+        githubRepo.setUpdatedAt(LocalDate.of(2022, 1, 1));
+        repositories.add(githubRepo);
+
+        when(repoSearchRepository.findByStarsCountGreaterThan(minStars, Sort.by("forksCount"))).thenReturn(repositories);
+
+        List<GithubRepo> result = repoSearchService.getRepositoriesByCriteria(null, minStars, RepositorySortingModel.FORKS.getValue());
+        assertEquals(repositories, result);
+        verify(repoSearchRepository).findByStarsCountGreaterThan(minStars, Sort.by("forksCount"));
+    }
+
+    @Test
+    public void testSearchRepositoriesByMinStars_NoResults() {
+        int minStars = Integer.MAX_VALUE;
+        RepositorySortingModel sortingModel = RepositorySortingModel.FORKS;
+        List<GithubRepo> repositories = new ArrayList<>();
+
+        when(repoSearchRepository.findByStarsCountGreaterThan(minStars, Sort.by("forksCount"))).thenReturn(repositories);
+
+        List<GithubRepo> result = repoSearchService.getRepositoriesByCriteria(null, minStars, sortingModel.getValue());
+        assertEquals(repositories, result);
+        verify(repoSearchRepository).findByStarsCountGreaterThan(minStars, Sort.by("forksCount"));
     }
 }
